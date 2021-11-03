@@ -79,3 +79,28 @@ or were never implemented. This server aims to be RFC compliant, but does not
 implement any other protocol other than INET (the one we're all used to), and
 only supports a handful of record types (the ones that are in use on a regular
 basis).
+
+## Signatures over requests/responses
+
+Two schemes are supported:
+
+ * TSIG (symmetric HMAC key, shared between server and client)
+ * SIG0 (asymmetric, separate signing keys by server and client)
+
+Both schemes have tests which also serve as examples for use of the Signatures.
+
+In addition to internal tests, it is possible to verify implementations by
+using other implementations to issue requests. Perl's Net::DNS::SEC module
+supports TSIG and SIG0. A sig0 test using Bind's nsupdate as a client
+against a server running on 127.0.0.1:9999 might look like:
+
+```
+dnssec-keygen -T KEY -a rsasha1 -b 1024 -n USER testclient
+nsupdate -k Ktestclient.+005+*.private << EOF
+debug
+server 127.0.0.1 9999
+update add www1.example.com 86400 a 10.1.1.1
+show
+send
+EOF
+```
